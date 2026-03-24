@@ -28,8 +28,20 @@ function rotuloParaIndice(indice: number, formato: FormatoResposta) {
   return String(2 ** indice);
 }
 
+function manterOrdemOriginalDasQuestoes(embaralhadas: Questao[], originais: Questao[]) {
+  return embaralhadas.every((questao, indice) => questao.id === originais[indice]?.id);
+}
+
 function gerarProvaIndividual(prova: Prova, questoesDaProva: Questao[], numeroProva: number): ProvaGerada {
   const questoesEmbaralhadas = embaralhar(questoesDaProva);
+
+  // Evita manter a ordem original quando ha mais de uma questao, deixando o embaralhamento perceptivel.
+  if (questoesDaProva.length > 1 && manterOrdemOriginalDasQuestoes(questoesEmbaralhadas, questoesDaProva)) {
+    const primeira = questoesEmbaralhadas.shift();
+    if (primeira) {
+      questoesEmbaralhadas.push(primeira);
+    }
+  }
 
   return {
     numeroProva,

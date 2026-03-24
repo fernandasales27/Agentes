@@ -10,11 +10,28 @@ function linhaHorizontal(doc: PDFKit.PDFDocument) {
   doc.moveDown(0.5);
 }
 
-function cabecalhoProva(doc: PDFKit.PDFDocument, prova: Prova, numeroProva: number, continuidade = false) {
+function formatarDataCabecalho(dataIso: string) {
+  const data = new Date(dataIso);
+  if (Number.isNaN(data.getTime())) {
+    return "Data: --/--/----";
+  }
+
+  return `Data: ${data.toLocaleDateString("pt-BR")}`;
+}
+
+function cabecalhoProva(
+  doc: PDFKit.PDFDocument,
+  prova: Prova,
+  numeroProva: number,
+  dataCabecalho: string,
+  continuidade = false
+) {
   doc.fontSize(16).fillColor("#111").text(prova.titulo || "Prova", { align: "center" });
   doc.moveDown(0.3);
   doc.fontSize(11).text(`Disciplina: ${prova.disciplina}`);
   doc.text(`Professor: ${prova.professor}`);
+  doc.text(dataCabecalho);
+  doc.text(`Formato de resposta: ${prova.formatoResposta}`);
   doc.text(`Numero da prova: ${numeroProva}`);
   if (continuidade) {
     doc.text("Pagina de continuidade", { align: "right" });
@@ -62,7 +79,8 @@ function garantirEspacoParaQuestao(
   doc: PDFKit.PDFDocument,
   alturaNecessaria: number,
   prova: Prova,
-  numeroProva: number
+  numeroProva: number,
+  dataCabecalho: string
 ) {
   const limite = doc.page.height - MARGEM_INFERIOR_UTIL;
   if (doc.y + alturaNecessaria <= limite) {
@@ -71,10 +89,15 @@ function garantirEspacoParaQuestao(
 
   rodapeProva(doc, numeroProva);
   doc.addPage();
-  cabecalhoProva(doc, prova, numeroProva, true);
+  cabecalhoProva(doc, prova, numeroProva, dataCabecalho, true);
 }
 
-function garantirEspacoParaFinal(doc: PDFKit.PDFDocument, prova: Prova, numeroProva: number) {
+function garantirEspacoParaFinal(
+  doc: PDFKit.PDFDocument,
+  prova: Prova,
+  numeroProva: number,
+  dataCabecalho: string
+) {
   const alturaFinal = 70;
   const limite = doc.page.height - MARGEM_INFERIOR_UTIL;
 
@@ -84,12 +107,13 @@ function garantirEspacoParaFinal(doc: PDFKit.PDFDocument, prova: Prova, numeroPr
 
   rodapeProva(doc, numeroProva);
   doc.addPage();
-  cabecalhoProva(doc, prova, numeroProva, true);
+  cabecalhoProva(doc, prova, numeroProva, dataCabecalho, true);
 }
 
 export async function gerarPdfDoLote(lote: GeracaoLote, prova: Prova) {
   const doc = new PDFDocument({ size: "A4", margin: 50 });
   const chunks: Buffer[] = [];
+  const dataCabecalho = formatarDataCabecalho(lote.criadoEm);
 
   doc.on("data", (chunk: Buffer) => {
     chunks.push(chunk);
@@ -107,7 +131,7 @@ export async function gerarPdfDoLote(lote: GeracaoLote, prova: Prova) {
       doc.addPage();
     }
 
-    cabecalhoProva(doc, prova, provaGerada.numeroProva);
+    cabecalhoProva(doc, prova, provaGerada.numeroProva, dataCabecalho);
 
     provaGerada.questoes.forEach((questao, indiceQuestao) => {
       const alturaQuestao = estimarAlturaQuestao(
@@ -117,7 +141,7 @@ export async function gerarPdfDoLote(lote: GeracaoLote, prova: Prova) {
         lote.formatoResposta
       );
 
-      garantirEspacoParaQuestao(doc, alturaQuestao, prova, provaGerada.numeroProva);
+      garantirEspacoParaQuestao(doc, alturaQuestao, prova, provaGerada.numeroProva, dataCabecalho);
 
       doc.fontSize(12).fillColor("#111").text(`${indiceQuestao + 1}) ${questao.enunciado}`);
       doc.moveDown(0.3);
@@ -137,7 +161,7 @@ export async function gerarPdfDoLote(lote: GeracaoLote, prova: Prova) {
       doc.moveDown(0.7);
     });
 
-    garantirEspacoParaFinal(doc, prova, provaGerada.numeroProva);
+    garantirEspacoParaFinal(doc, prova, provaGerada.numeroProva, dataCabecalho);
 
     linhaHorizontal(doc);
     doc.fontSize(11).text("Nome do aluno: ____________________________________________");

@@ -580,6 +580,9 @@ export function App() {
         <>
           <section style={secaoStyle}>
             <h2>{questaoIdEmEdicao ? "Editar Questao" : "Criar Questao"}</h2>
+            <p style={{ marginTop: 0, color: "#444" }}>
+              O formato das alternativas (Letras ou Potencias de 2) e definido na aba Provas.
+            </p>
             <form onSubmit={criarOuEditarQuestao}>
               <label>
                 Enunciado
@@ -707,9 +710,12 @@ export function App() {
                 <br />
                 <select value={formatoResposta} onChange={(e) => setFormatoResposta(e.target.value as FormatoResposta)}>
                   <option value="LETRAS">Letras</option>
-                  <option value="POTENCIAS_2">Potencias de 2</option>
+                  <option value="POTENCIAS_2">Potencias de 2 (1, 2, 4, 8)</option>
                 </select>
               </label>
+              <p style={{ marginTop: "0.4rem", color: "#444" }}>
+                Este formato define como as alternativas serao exibidas na prova gerada e no gabarito.
+              </p>
               <br />
               <br />
               <div>
