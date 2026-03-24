@@ -113,12 +113,14 @@ export function App() {
   const [alt2Correta, setAlt2Correta] = useState(false);
   const [alt3Correta, setAlt3Correta] = useState(false);
   const [alt4Correta, setAlt4Correta] = useState(false);
+  const [questaoIdEmEdicao, setQuestaoIdEmEdicao] = useState<string | null>(null);
 
   const [titulo, setTitulo] = useState("");
   const [disciplina, setDisciplina] = useState("");
   const [professor, setProfessor] = useState("");
   const [formatoResposta, setFormatoResposta] = useState<FormatoResposta>("LETRAS");
   const [questoesSelecionadas, setQuestoesSelecionadas] = useState<string[]>([]);
+  const [provaIdEmEdicao, setProvaIdEmEdicao] = useState<string | null>(null);
   const [provaIdParaGeracao, setProvaIdParaGeracao] = useState("");
   const [quantidadeGeracao, setQuantidadeGeracao] = useState(1);
   const [ultimoLote, setUltimoLote] = useState<LoteGeracaoResumo | null>(null);
@@ -148,24 +150,43 @@ export function App() {
     void carregarTudo();
   }, []);
 
-  async function criarQuestao(event: FormEvent<HTMLFormElement>) {
+  async function criarOuEditarQuestao(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErro("");
     setOk("");
 
     try {
-      await fetchJson<Questao>("/api/questoes", {
-        method: "POST",
-        body: JSON.stringify({
-          enunciado,
-          alternativas: [
-            { descricao: alt1, correta: alt1Correta },
-            { descricao: alt2, correta: alt2Correta },
-            { descricao: alt3, correta: alt3Correta },
-            { descricao: alt4, correta: alt4Correta },
-          ],
-        }),
-      });
+      if (questaoIdEmEdicao) {
+        // Modo edição
+        await fetchJson<Questao>(`/api/questoes/${questaoIdEmEdicao}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            enunciado,
+            alternativas: [
+              { descricao: alt1, correta: alt1Correta },
+              { descricao: alt2, correta: alt2Correta },
+              { descricao: alt3, correta: alt3Correta },
+              { descricao: alt4, correta: alt4Correta },
+            ],
+          }),
+        });
+        setOk("Questao atualizada com sucesso.");
+      } else {
+        // Modo criação
+        await fetchJson<Questao>("/api/questoes", {
+          method: "POST",
+          body: JSON.stringify({
+            enunciado,
+            alternativas: [
+              { descricao: alt1, correta: alt1Correta },
+              { descricao: alt2, correta: alt2Correta },
+              { descricao: alt3, correta: alt3Correta },
+              { descricao: alt4, correta: alt4Correta },
+            ],
+          }),
+        });
+        setOk("Questao criada com sucesso.");
+      }
 
       setEnunciado("");
       setAlt1("");
@@ -176,40 +197,128 @@ export function App() {
       setAlt2Correta(false);
       setAlt3Correta(false);
       setAlt4Correta(false);
-      setOk("Questao criada com sucesso.");
+      setQuestaoIdEmEdicao(null);
       await carregarTudo();
     } catch (error) {
       setErro((error as Error).message);
     }
   }
 
-  async function criarProva(event: FormEvent<HTMLFormElement>) {
+  function carregarQuestaoParaEdicao(questao: Questao) {
+    setEnunciado(questao.enunciado);
+    setQuestaoIdEmEdicao(questao.id);
+    
+    const alts = questao.alternativas;
+    setAlt1(alts[0]?.descricao || "");
+    setAlt1Correta(alts[0]?.correta || false);
+    setAlt2(alts[1]?.descricao || "");
+    setAlt2Correta(alts[1]?.correta || false);
+    setAlt3(alts[2]?.descricao || "");
+    setAlt3Correta(alts[2]?.correta || false);
+    setAlt4(alts[3]?.descricao || "");
+    setAlt4Correta(alts[3]?.correta || false);
+    
+    setErro("");
+    setOk("");
+  }
+
+  function cancelarEdicaoQuestao() {
+    setEnunciado("");
+    setAlt1("");
+    setAlt2("");
+    setAlt3("");
+    setAlt4("");
+    setAlt1Correta(false);
+    setAlt2Correta(false);
+    setAlt3Correta(false);
+    setAlt4Correta(false);
+    setQuestaoIdEmEdicao(null);
+    setErro("");
+    setOk("");
+  }
+
+  async function removerQuestao(questaoId: string) {
+    setErro("");
+    setOk("");
+
+    try {
+      await fetchJson<void>(`/api/questoes/${questaoId}`, {
+        method: "DELETE",
+      });
+
+      setOk("Questao removida com sucesso.");
+      await carregarTudo();
+    } catch (error) {
+      setErro((error as Error).message);
+    }
+  }
+
+  async function criarOuEditarProva(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErro("");
     setOk("");
 
     try {
-      await fetchJson<Prova>("/api/provas", {
-        method: "POST",
-        body: JSON.stringify({
-          titulo,
-          disciplina,
-          professor,
-          formatoResposta,
-          questaoIds: questoesSelecionadas,
-        }),
-      });
+      if (provaIdEmEdicao) {
+        // Modo edição
+        await fetchJson<Prova>(`/api/provas/${provaIdEmEdicao}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            titulo,
+            disciplina,
+            professor,
+            formatoResposta,
+            questaoIds: questoesSelecionadas,
+          }),
+        });
+        setOk("Prova atualizada com sucesso.");
+      } else {
+        // Modo criação
+        await fetchJson<Prova>("/api/provas", {
+          method: "POST",
+          body: JSON.stringify({
+            titulo,
+            disciplina,
+            professor,
+            formatoResposta,
+            questaoIds: questoesSelecionadas,
+          }),
+        });
+        setOk("Prova criada com sucesso.");
+      }
 
       setTitulo("");
       setDisciplina("");
       setProfessor("");
       setFormatoResposta("LETRAS");
       setQuestoesSelecionadas([]);
-      setOk("Prova criada com sucesso.");
+      setProvaIdEmEdicao(null);
       await carregarTudo();
     } catch (error) {
       setErro((error as Error).message);
     }
+  }
+
+  function carregarProvaParaEdicao(prova: Prova) {
+    setTitulo(prova.titulo);
+    setDisciplina(prova.disciplina);
+    setProfessor(prova.professor);
+    setFormatoResposta(prova.formatoResposta);
+    setQuestoesSelecionadas(prova.questaoIds);
+    setProvaIdEmEdicao(prova.id);
+    setErro("");
+    setOk("");
+  }
+
+  function cancelarEdicaoProva() {
+    setTitulo("");
+    setDisciplina("");
+    setProfessor("");
+    setFormatoResposta("LETRAS");
+    setQuestoesSelecionadas([]);
+    setProvaIdEmEdicao(null);
+    setErro("");
+    setOk("");
   }
 
   function toggleQuestao(questaoId: string) {
@@ -453,8 +562,8 @@ export function App() {
       {abaAtiva === "QUESTOES" ? (
         <>
           <section style={secaoStyle}>
-            <h2>Criar Questao</h2>
-            <form onSubmit={criarQuestao}>
+            <h2>{questaoIdEmEdicao ? "Editar Questao" : "Criar Questao"}</h2>
+            <form onSubmit={criarOuEditarQuestao}>
               <label>
                 Enunciado
                 <br />
@@ -502,7 +611,16 @@ export function App() {
               </label>
               <br />
               <br />
-              <button type="submit">Salvar questao</button>
+              <button type="submit">{questaoIdEmEdicao ? "Atualizar questao" : "Salvar questao"}</button>
+              {questaoIdEmEdicao ? (
+                <button
+                  type="button"
+                  onClick={cancelarEdicaoQuestao}
+                  style={{ marginLeft: "0.5rem", backgroundColor: "#757575", color: "#fff", padding: "0.5rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                >
+                  Cancelar
+                </button>
+              ) : null}
             </form>
           </section>
 
@@ -520,6 +638,20 @@ export function App() {
                       </li>
                     ))}
                   </ul>
+                  <button
+                    type="button"
+                    onClick={() => carregarQuestaoParaEdicao(questao)}
+                    style={{ marginTop: "0.4rem", marginRight: "0.4rem", backgroundColor: "#1976d2", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removerQuestao(questao.id)}
+                    style={{ marginTop: "0.4rem", backgroundColor: "#d32f2f", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Remover
+                  </button>
                 </li>
               ))}
             </ul>
@@ -530,8 +662,8 @@ export function App() {
       {abaAtiva === "PROVAS" ? (
         <>
           <section style={secaoStyle}>
-            <h2>Criar Prova</h2>
-            <form onSubmit={criarProva}>
+            <h2>{provaIdEmEdicao ? "Editar Prova" : "Criar Prova"}</h2>
+            <form onSubmit={criarOuEditarProva}>
               <label>
                 Titulo
                 <br />
@@ -578,7 +710,16 @@ export function App() {
                 ))}
               </div>
               <br />
-              <button type="submit">Salvar prova</button>
+              <button type="submit">{provaIdEmEdicao ? "Atualizar prova" : "Salvar prova"}</button>
+              {provaIdEmEdicao ? (
+                <button
+                  type="button"
+                  onClick={cancelarEdicaoProva}
+                  style={{ marginLeft: "0.5rem", backgroundColor: "#757575", color: "#fff", padding: "0.5rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                >
+                  Cancelar
+                </button>
+              ) : null}
             </form>
           </section>
 
@@ -591,6 +732,13 @@ export function App() {
                   <div>
                     {prova.titulo} - {prova.disciplina} - {prova.professor} - {prova.formatoResposta} ({prova.questaoIds.length} questoes)
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => carregarProvaParaEdicao(prova)}
+                    style={{ marginTop: "0.4rem", marginRight: "0.4rem", backgroundColor: "#1976d2", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Editar
+                  </button>
                   <button
                     type="button"
                     onClick={() => removerProva(prova.id)}

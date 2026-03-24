@@ -8,6 +8,9 @@ type Questao = {
 type Prova = {
   formatoResposta: "LETRAS" | "POTENCIAS_2";
   questoes: Questao[];
+  titulo?: string;
+  disciplina?: string;
+  professor?: string;
 };
 
 type ProvaGerada = {
@@ -22,6 +25,7 @@ type LoteGerado = {
 type CenarioState = {
   questoes: Questao[];
   provas: Prova[];
+  ultimaQuestaoIndex?: number;
   ultimaProvaIndex?: number;
   lote?: LoteGerado;
   csvGabarito?: string;
@@ -197,6 +201,7 @@ When("marcar a alternativa {string} como correta", function (descricao: string) 
   }
 
   state.questoes.push(questao);
+  state.ultimaQuestaoIndex = state.questoes.length - 1;
   alternativasAtual = [];
 });
 
@@ -281,6 +286,9 @@ When("eu criar uma prova no formato {string}", function (formato: string) {
   state.provas.push({
     formatoResposta: formato,
     questoes: state.questoes,
+    titulo: `Prova ${state.provas.length + 1}`,
+    disciplina: "Teste",
+    professor: "Professor Teste",
   });
   state.ultimaProvaIndex = state.provas.length - 1;
 });
@@ -294,6 +302,75 @@ When("eu remover a prova criada", function () {
 
   state.provas.splice(state.ultimaProvaIndex, 1);
   state.ultimaProvaIndex = undefined;
+});
+
+When("eu editar a prova com titulo {string}", function (novoTitulo: string) {
+  state.erro = undefined;
+  if (state.ultimaProvaIndex === undefined || state.ultimaProvaIndex < 0) {
+    state.erro = "Nenhuma prova foi criada";
+    return;
+  }
+
+  const prova = state.provas[state.ultimaProvaIndex];
+  if (!prova) {
+    state.erro = "Prova nao encontrada";
+    return;
+  }
+
+  prova.titulo = novoTitulo;
+});
+
+Then("a prova deve conter o novo titulo {string}", function (titulo: string) {
+  if (state.ultimaProvaIndex === undefined || state.ultimaProvaIndex < 0) {
+    throw new Error("Nenhuma prova foi criada");
+  }
+
+  const prova = state.provas[state.ultimaProvaIndex];
+  if (!prova) {
+    throw new Error("Prova nao encontrada");
+  }
+
+  assertEqual(prova.titulo, titulo, "Titulo da prova invalido");
+});
+
+When("eu editar a questao com novo enunciado {string}", function (novoEnunciado: string) {
+  state.erro = undefined;
+  if (state.ultimaQuestaoIndex === undefined || state.ultimaQuestaoIndex < 0) {
+    state.erro = "Nenhuma questao foi criada";
+    return;
+  }
+
+  const questao = state.questoes[state.ultimaQuestaoIndex];
+  if (!questao) {
+    state.erro = "Questao nao encontrada";
+    return;
+  }
+
+  questao.enunciado = novoEnunciado;
+});
+
+Then("a questao deve conter o enunciado {string}", function (enunciado: string) {
+  if (state.ultimaQuestaoIndex === undefined || state.ultimaQuestaoIndex < 0) {
+    throw new Error("Nenhuma questao foi criada");
+  }
+
+  const questao = state.questoes[state.ultimaQuestaoIndex];
+  if (!questao) {
+    throw new Error("Questao nao encontrada");
+  }
+
+  assertEqual(questao.enunciado, enunciado, "Enunciado da questao invalido");
+});
+
+When("eu remover a questao criada", function () {
+  state.erro = undefined;
+  if (state.ultimaQuestaoIndex === undefined || state.ultimaQuestaoIndex < 0) {
+    state.erro = "Nenhuma questao foi criada";
+    return;
+  }
+
+  state.questoes.splice(state.ultimaQuestaoIndex, 1);
+  state.ultimaQuestaoIndex = undefined;
 });
 
 Then("a lista de questoes deve ter {int} item", function (quantidade: number) {
@@ -334,6 +411,9 @@ Given("que existe uma prova valida com 2 questoes", function () {
     {
       formatoResposta: "LETRAS",
       questoes: state.questoes,
+      titulo: "Prova Padrão",
+      disciplina: "Teste",
+      professor: "Professor Teste",
     },
   ];
   state.erro = undefined;

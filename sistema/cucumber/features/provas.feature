@@ -13,6 +13,22 @@ Funcionalidade: Cadastro inicial de questoes e provas
     Quando eu tentar cadastrar questao sem alternativa correta
     Entao devo receber erro de validacao de alternativa correta
 
+  Cenario: Editar questao existente
+    Dado que nao existem questoes cadastradas
+    Quando eu cadastrar uma questao com enunciado "Capital do Brasil"
+    E com as alternativas "Sao Paulo", "Rio de Janeiro", "Brasilia", "Salvador"
+    E marcar a alternativa "Brasilia" como correta
+    E eu editar a questao com novo enunciado "Qual e a capital do Brasil?"
+    Entao a questao deve conter o enunciado "Qual e a capital do Brasil?"
+
+  Cenario: Remover questao existente
+    Dado que nao existem questoes cadastradas
+    Quando eu cadastrar uma questao com enunciado "Capital do Brasil"
+    E com as alternativas "Sao Paulo", "Rio de Janeiro", "Brasilia", "Salvador"
+    E marcar a alternativa "Brasilia" como correta
+    E eu remover a questao criada
+    Entao a lista de questoes deve ter 0 item
+
   Cenario: Criar prova com questoes existentes
     Dado que existem 2 questoes validas cadastradas
     Quando eu criar uma prova no formato "LETRAS"
@@ -23,6 +39,12 @@ Funcionalidade: Cadastro inicial de questoes e provas
     Quando eu criar uma prova no formato "LETRAS"
     E eu remover a prova criada
     Entao a lista de provas deve ter 0 item
+
+  Cenario: Editar prova existente
+    Dado que existem 2 questoes validas cadastradas
+    Quando eu criar uma prova no formato "LETRAS"
+    E eu editar a prova com titulo "Prova Editada"
+    Entao a prova deve conter o novo titulo "Prova Editada"
 
   Cenario: Gerar lote de provas com gabarito CSV
     Dado que existe uma prova valida com 2 questoes
