@@ -107,8 +107,12 @@ export function App() {
   const [enunciado, setEnunciado] = useState("");
   const [alt1, setAlt1] = useState("");
   const [alt2, setAlt2] = useState("");
+  const [alt3, setAlt3] = useState("");
+  const [alt4, setAlt4] = useState("");
   const [alt1Correta, setAlt1Correta] = useState(false);
   const [alt2Correta, setAlt2Correta] = useState(false);
+  const [alt3Correta, setAlt3Correta] = useState(false);
+  const [alt4Correta, setAlt4Correta] = useState(false);
 
   const [titulo, setTitulo] = useState("");
   const [disciplina, setDisciplina] = useState("");
@@ -157,6 +161,8 @@ export function App() {
           alternativas: [
             { descricao: alt1, correta: alt1Correta },
             { descricao: alt2, correta: alt2Correta },
+            { descricao: alt3, correta: alt3Correta },
+            { descricao: alt4, correta: alt4Correta },
           ],
         }),
       });
@@ -164,8 +170,12 @@ export function App() {
       setEnunciado("");
       setAlt1("");
       setAlt2("");
+      setAlt3("");
+      setAlt4("");
       setAlt1Correta(false);
       setAlt2Correta(false);
+      setAlt3Correta(false);
+      setAlt4Correta(false);
       setOk("Questao criada com sucesso.");
       await carregarTudo();
     } catch (error) {
@@ -209,6 +219,22 @@ export function App() {
       }
       return [...atual, questaoId];
     });
+  }
+
+  async function removerProva(provaId: string) {
+    setErro("");
+    setOk("");
+
+    try {
+      await fetchJson<void>(`/api/provas/${provaId}`, {
+        method: "DELETE",
+      });
+
+      setOk("Prova removida com sucesso.");
+      await carregarTudo();
+    } catch (error) {
+      setErro((error as Error).message);
+    }
   }
 
   async function gerarLote(event: FormEvent<HTMLFormElement>) {
@@ -456,6 +482,26 @@ export function App() {
               </label>
               <br />
               <br />
+              <label>
+                Alternativa 3
+                <br />
+                <input value={alt3} onChange={(e) => setAlt3(e.target.value)} style={{ width: "100%" }} />
+              </label>
+              <label style={{ marginLeft: "0.5rem" }}>
+                <input type="checkbox" checked={alt3Correta} onChange={(e) => setAlt3Correta(e.target.checked)} /> Correta
+              </label>
+              <br />
+              <br />
+              <label>
+                Alternativa 4
+                <br />
+                <input value={alt4} onChange={(e) => setAlt4(e.target.value)} style={{ width: "100%" }} />
+              </label>
+              <label style={{ marginLeft: "0.5rem" }}>
+                <input type="checkbox" checked={alt4Correta} onChange={(e) => setAlt4Correta(e.target.checked)} /> Correta
+              </label>
+              <br />
+              <br />
               <button type="submit">Salvar questao</button>
             </form>
           </section>
@@ -541,8 +587,17 @@ export function App() {
             {provas.length === 0 ? <p>Nenhuma prova cadastrada.</p> : null}
             <ul>
               {provas.map((prova) => (
-                <li key={prova.id}>
-                  {prova.titulo} - {prova.disciplina} - {prova.professor} - {prova.formatoResposta} ({prova.questaoIds.length} questoes)
+                <li key={prova.id} style={{ marginBottom: "0.8rem" }}>
+                  <div>
+                    {prova.titulo} - {prova.disciplina} - {prova.professor} - {prova.formatoResposta} ({prova.questaoIds.length} questoes)
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removerProva(prova.id)}
+                    style={{ marginTop: "0.4rem", backgroundColor: "#d32f2f", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    Remover
+                  </button>
                 </li>
               ))}
             </ul>

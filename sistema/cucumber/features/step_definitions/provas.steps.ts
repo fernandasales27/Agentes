@@ -22,6 +22,7 @@ type LoteGerado = {
 type CenarioState = {
   questoes: Questao[];
   provas: Prova[];
+  ultimaProvaIndex?: number;
   lote?: LoteGerado;
   csvGabarito?: string;
   csvRespostas?: string;
@@ -36,6 +37,7 @@ const state: CenarioState = {
 };
 
 let enunciadoAtual = "";
+let alternativasAtual: Array<{ descricao: string; correta: boolean }> = [];
 
 function assertEqual(actual: unknown, expected: unknown, mensagem: string) {
   if (actual !== expected) {
@@ -74,12 +76,12 @@ function embaralhar<T>(itens: T[]) {
 function gerarCsvGabarito(provas: ProvaGerada[]) {
   const cabecalho = "numeroProva,q1,q2";
   const linhas = provas.map((prova) => {
-    const respostas = prova.questoes.map((questao) =>
-      questao.alternativas
-        .filter((alternativa) => alternativa.correta)
-        .map((alternativa, index) => (index === 0 ? "A" : "B"))
-        .join("")
-    );
+    const respostas = prova.questoes.map((questao) => {
+      const [correta] = questao.alternativas.filter((alternativa) => alternativa.correta);
+      const index = questao.alternativas.indexOf(correta);
+      const opcoes = ["A", "B", "C", "D"];
+      return opcoes[index] || "A";
+    });
     return [String(prova.numeroProva), ...respostas].join(",");
   });
 
@@ -164,6 +166,41 @@ When("eu cadastrar uma questao com enunciado {string}", function (enunciado: str
 });
 
 When(
+  "com as alternativas {string}, {string}, {string}, {string}",
+  function (alt1: string, alt2: string, alt3: string, alt4: string) {
+    alternativasAtual = [
+      { descricao: alt1, correta: false },
+      { descricao: alt2, correta: false },
+      { descricao: alt3, correta: false },
+      { descricao: alt4, correta: false },
+    ];
+  }
+);
+
+When("marcar a alternativa {string} como correta", function (descricao: string) {
+  const encontrada = alternativasAtual.find((alt) => alt.descricao === descricao);
+  if (!encontrada) {
+    state.erro = `Alternativa "${descricao}" nao encontrada`;
+    return;
+  }
+  encontrada.correta = true;
+
+  const questao: Questao = {
+    enunciado: enunciadoAtual,
+    alternativas: alternativasAtual,
+  };
+
+  const erro = validarQuestao(questao);
+  if (erro) {
+    state.erro = erro;
+    return;
+  }
+
+  state.questoes.push(questao);
+  alternativasAtual = [];
+});
+
+When(
   "com as alternativas {string} incorreta e {string} correta",
   function (incorreta: string, correta: string) {
     const questao: Questao = {
@@ -191,6 +228,8 @@ When("eu tentar cadastrar questao sem alternativa correta", function () {
     alternativas: [
       { descricao: "Opcao 1", correta: false },
       { descricao: "Opcao 2", correta: false },
+      { descricao: "Opcao 3", correta: false },
+      { descricao: "Opcao 4", correta: false },
     ],
   };
 
@@ -209,13 +248,17 @@ Given("que existem 2 questoes validas cadastradas", function () {
       alternativas: [
         { descricao: "A", correta: true },
         { descricao: "B", correta: false },
+        { descricao: "C", correta: false },
+        { descricao: "D", correta: false },
       ],
     },
     {
       enunciado: "Q2",
       alternativas: [
-        { descricao: "C", correta: false },
-        { descricao: "D", correta: true },
+        { descricao: "E", correta: false },
+        { descricao: "F", correta: false },
+        { descricao: "G", correta: true },
+        { descricao: "H", correta: false },
       ],
     },
   ];
@@ -239,6 +282,18 @@ When("eu criar uma prova no formato {string}", function (formato: string) {
     formatoResposta: formato,
     questoes: state.questoes,
   });
+  state.ultimaProvaIndex = state.provas.length - 1;
+});
+
+When("eu remover a prova criada", function () {
+  state.erro = undefined;
+  if (state.ultimaProvaIndex === undefined || state.ultimaProvaIndex < 0) {
+    state.erro = "Nenhuma prova foi criada";
+    return;
+  }
+
+  state.provas.splice(state.ultimaProvaIndex, 1);
+  state.ultimaProvaIndex = undefined;
 });
 
 Then("a lista de questoes deve ter {int} item", function (quantidade: number) {
@@ -260,6 +315,8 @@ Given("que existe uma prova valida com 2 questoes", function () {
       alternativas: [
         { descricao: "A", correta: true },
         { descricao: "B", correta: false },
+        { descricao: "C", correta: false },
+        { descricao: "D", correta: false },
       ],
     },
     {
@@ -267,6 +324,8 @@ Given("que existe uma prova valida com 2 questoes", function () {
       alternativas: [
         { descricao: "A", correta: false },
         { descricao: "B", correta: true },
+        { descricao: "C", correta: false },
+        { descricao: "D", correta: false },
       ],
     },
   ];
@@ -307,8 +366,8 @@ Then("o CSV de gabarito deve conter cabecalho e {int} linhas de dados", function
 });
 
 Given("que existe um gabarito CSV e respostas CSV validos", function () {
-  state.csvGabarito = "numeroProva,q1,q2\n1,A,B\n2,AB,A";
-  state.csvRespostas = "identificadorAluno,numeroProva,q1,q2\naluno1,1,A,B\naluno2,2,A,A";
+  state.csvGabarito = "numeroProva,q1,q2\n1,A,B\n2,B,C";
+  state.csvRespostas = "identificadorAluno,numeroProva,q1,q2\naluno1,1,A,B\naluno2,2,B,A";
   state.relatorio = undefined;
   state.erro = undefined;
 });

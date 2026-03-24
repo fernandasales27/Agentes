@@ -4,7 +4,8 @@ Funcionalidade: Cadastro inicial de questoes e provas
   Cenario: Cadastrar questao valida
     Dado que nao existem questoes cadastradas
     Quando eu cadastrar uma questao com enunciado "Capital do Brasil"
-    E com as alternativas "Sao Paulo" incorreta e "Brasilia" correta
+    E com as alternativas "Sao Paulo", "Rio de Janeiro", "Brasilia", "Salvador"
+    E marcar a alternativa "Brasilia" como correta
     Entao a lista de questoes deve ter 1 item
 
   Cenario: Impedir questao sem alternativa correta
@@ -16,6 +17,12 @@ Funcionalidade: Cadastro inicial de questoes e provas
     Dado que existem 2 questoes validas cadastradas
     Quando eu criar uma prova no formato "LETRAS"
     Entao a lista de provas deve ter 1 item
+
+  Cenario: Remover prova existente
+    Dado que existem 2 questoes validas cadastradas
+    Quando eu criar uma prova no formato "LETRAS"
+    E eu remover a prova criada
+    Entao a lista de provas deve ter 0 item
 
   Cenario: Gerar lote de provas com gabarito CSV
     Dado que existe uma prova valida com 2 questoes
