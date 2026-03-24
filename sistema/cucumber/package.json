@@ -1,0 +1,13 @@
+{
+  "name": "sistema-cucumber",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:acceptance": "cucumber-js --config cucumber.cjs"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  }
+}

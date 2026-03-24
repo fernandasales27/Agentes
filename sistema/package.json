@@ -1,0 +1,13 @@
+{
+  "name": "sistema-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix frontend install && npm --prefix backend install && npm --prefix cucumber install",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "test:acceptance": "npm --prefix cucumber run test:acceptance",
+    "check": "npm run build:all && npm run test:acceptance"
+  }
+}

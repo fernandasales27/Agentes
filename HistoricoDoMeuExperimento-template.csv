@@ -1,0 +1,2 @@
+data_hora,prompt,acao_do_agente,resultado_tecnico,efetividade_limitacoes,aceitou_modificacoes,problemas_identificados,ajustes_manuais,commit_hash
+2026-03-21 10:00,Exemplo de prompt,"Criou estrutura inicial frontend/backend/cucumber",Compilou parcialmente,"Bom para acelerar setup; exigiu ajustes em ambiente",sim,"npm ausente no PATH",sim,

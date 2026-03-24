@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Build outputs
+sistema/frontend/dist/
+sistema/backend/dist/
+sistema/frontend/tsconfig.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
