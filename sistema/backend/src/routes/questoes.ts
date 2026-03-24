@@ -40,6 +40,11 @@ function validarQuestao(payload: QuestaoInput) {
     return "A questao deve ter pelo menos uma alternativa correta.";
   }
 
+  const quantasCorretas = alternativas.filter((alt) => alt.correta === true).length;
+  if (quantasCorretas > 1) {
+    return "A questao deve ter exatamente uma alternativa correta.";
+  }
+
   return null;
 }
 

@@ -156,18 +156,20 @@ export function App() {
     setOk("");
 
     try {
+      const alternativasArray = [
+        { descricao: alt1, correta: alt1Correta },
+        { descricao: alt2, correta: alt2Correta },
+        { descricao: alt3, correta: alt3Correta },
+        { descricao: alt4, correta: alt4Correta },
+      ].filter((alt) => alt.descricao.trim() !== "");
+
       if (questaoIdEmEdicao) {
         // Modo edição
         await fetchJson<Questao>(`/api/questoes/${questaoIdEmEdicao}`, {
           method: "PUT",
           body: JSON.stringify({
             enunciado,
-            alternativas: [
-              { descricao: alt1, correta: alt1Correta },
-              { descricao: alt2, correta: alt2Correta },
-              { descricao: alt3, correta: alt3Correta },
-              { descricao: alt4, correta: alt4Correta },
-            ],
+            alternativas: alternativasArray,
           }),
         });
         setOk("Questao atualizada com sucesso.");
@@ -177,12 +179,7 @@ export function App() {
           method: "POST",
           body: JSON.stringify({
             enunciado,
-            alternativas: [
-              { descricao: alt1, correta: alt1Correta },
-              { descricao: alt2, correta: alt2Correta },
-              { descricao: alt3, correta: alt3Correta },
-              { descricao: alt4, correta: alt4Correta },
-            ],
+            alternativas: alternativasArray,
           }),
         });
         setOk("Questao criada com sucesso.");
@@ -250,6 +247,26 @@ export function App() {
       await carregarTudo();
     } catch (error) {
       setErro((error as Error).message);
+    }
+  }
+
+  function marcarCorretaAlt(altNumber: number) {
+    // Garante que apenas uma alternativa possa ser marcada como correta
+    setAlt1Correta(altNumber === 1);
+    setAlt2Correta(altNumber === 2);
+    setAlt3Correta(altNumber === 3);
+    setAlt4Correta(altNumber === 4);
+  }
+
+  function desmarcarCorretaSeHouverMultiplas() {
+    // Se mais de uma está marcada, desmarca todas (para o usuário escolher novamente)
+    const totalCorretas = [alt1Correta, alt2Correta, alt3Correta, alt4Correta].filter(Boolean).length;
+    if (totalCorretas > 1) {
+      setAlt1Correta(false);
+      setAlt2Correta(false);
+      setAlt3Correta(false);
+      setAlt4Correta(false);
+      setErro("Apenas uma alternativa pode ser correta. Escolha novamente.");
     }
   }
 
@@ -577,7 +594,7 @@ export function App() {
                 <input value={alt1} onChange={(e) => setAlt1(e.target.value)} style={{ width: "100%" }} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
-                <input type="checkbox" checked={alt1Correta} onChange={(e) => setAlt1Correta(e.target.checked)} /> Correta
+                <input type="checkbox" checked={alt1Correta} onChange={() => marcarCorretaAlt(1)} /> Correta
               </label>
               <br />
               <br />
@@ -587,7 +604,7 @@ export function App() {
                 <input value={alt2} onChange={(e) => setAlt2(e.target.value)} style={{ width: "100%" }} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
-                <input type="checkbox" checked={alt2Correta} onChange={(e) => setAlt2Correta(e.target.checked)} /> Correta
+                <input type="checkbox" checked={alt2Correta} onChange={() => marcarCorretaAlt(2)} /> Correta
               </label>
               <br />
               <br />
@@ -597,7 +614,7 @@ export function App() {
                 <input value={alt3} onChange={(e) => setAlt3(e.target.value)} style={{ width: "100%" }} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
-                <input type="checkbox" checked={alt3Correta} onChange={(e) => setAlt3Correta(e.target.checked)} /> Correta
+                <input type="checkbox" checked={alt3Correta} onChange={() => marcarCorretaAlt(3)} /> Correta
               </label>
               <br />
               <br />
@@ -607,7 +624,7 @@ export function App() {
                 <input value={alt4} onChange={(e) => setAlt4(e.target.value)} style={{ width: "100%" }} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
-                <input type="checkbox" checked={alt4Correta} onChange={(e) => setAlt4Correta(e.target.checked)} /> Correta
+                <input type="checkbox" checked={alt4Correta} onChange={() => marcarCorretaAlt(4)} /> Correta
               </label>
               <br />
               <br />
