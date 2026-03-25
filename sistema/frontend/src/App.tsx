@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
 
 type Alternativa = {
   id: string;
@@ -47,10 +47,18 @@ type PdfMetadata = {
 
 type ModoCorrecao = "RIGOROSO" | "PROPORCIONAL";
 
+type ResultadoQuestao = {
+  questao: string;
+  respostaEsperada: string;
+  respostaInformada: string;
+  nota: number;
+};
+
 type ResultadoAluno = {
   identificadorAluno: string;
   numeroProva: number;
   notaTotal: number;
+  questoes?: ResultadoQuestao[];
 };
 
 type CorrecaoResumo = {
@@ -132,6 +140,9 @@ export function App() {
   const [relatorio, setRelatorio] = useState<CorrecaoDetalhada | null>(null);
   const [relatorioCsvConteudo, setRelatorioCsvConteudo] = useState("");
   const [validacaoCsv, setValidacaoCsv] = useState<ValidacaoCsvResultado | null>(null);
+  const [nomeArquivoGabarito, setNomeArquivoGabarito] = useState("");
+  const [nomeArquivoRespostas, setNomeArquivoRespostas] = useState("");
+  const [processandoCorrecaoCompleta, setProcessandoCorrecaoCompleta] = useState(false);
 
   async function carregarTudo() {
     try {
@@ -456,6 +467,20 @@ export function App() {
     }
   }
 
+  async function executarCorrecaoInterna() {
+    const correcao = await fetchJson<CorrecaoResumo>("/api/correcoes", {
+      method: "POST",
+      body: JSON.stringify({
+        modo: modoCorrecao,
+        gabaritoCsv,
+        respostasCsv,
+      }),
+    });
+
+    setUltimaCorrecao(correcao);
+    return correcao;
+  }
+
   async function executarCorrecao(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErro("");
@@ -464,16 +489,7 @@ export function App() {
     setRelatorioCsvConteudo("");
 
     try {
-      const correcao = await fetchJson<CorrecaoResumo>("/api/correcoes", {
-        method: "POST",
-        body: JSON.stringify({
-          modo: modoCorrecao,
-          gabaritoCsv,
-          respostasCsv,
-        }),
-      });
-
-      setUltimaCorrecao(correcao);
+      const correcao = await executarCorrecaoInterna();
       setOk(`Correcao ${correcao.id} executada com sucesso.`);
     } catch (error) {
       setErro((error as Error).message);
@@ -541,6 +557,136 @@ export function App() {
     } catch (error) {
       setErro((error as Error).message);
     }
+  }
+
+  async function executarCorrecaoCompleta() {
+    setErro("");
+    setOk("");
+    setRelatorio(null);
+    setRelatorioCsvConteudo("");
+    setProcessandoCorrecaoCompleta(true);
+
+    try {
+      const validacao = await fetchJson<ValidacaoCsvResultado>("/api/correcoes/validar-csv", {
+        method: "POST",
+        body: JSON.stringify({
+          gabaritoCsv,
+          respostasCsv,
+        }),
+      });
+      setValidacaoCsv(validacao);
+
+      const correcao = await executarCorrecaoInterna();
+      const [relatorioCompleto, responseCsv] = await Promise.all([
+        fetchJson<CorrecaoDetalhada>(`/api/correcoes/${correcao.id}/relatorio`),
+        fetch(`/api/correcoes/${correcao.id}/relatorio-csv`),
+      ]);
+
+      if (!responseCsv.ok) {
+        const data = await responseCsv.json().catch(() => ({}));
+        throw new Error(data.error ?? "Falha ao obter CSV de relatorio");
+      }
+
+      const csv = await responseCsv.text();
+      setRelatorio(relatorioCompleto);
+      setRelatorioCsvConteudo(csv);
+      setOk(`Correcao ${correcao.id} concluida com relatorio carregado.`);
+    } catch (error) {
+      setErro((error as Error).message);
+    } finally {
+      setProcessandoCorrecaoCompleta(false);
+    }
+  }
+
+  function baixarTexto(nomeArquivo: string, conteudo: string, mimeType = "text/csv;charset=utf-8") {
+    const blob = new Blob([conteudo], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeArquivo;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importarCsvDoArquivo(
+    event: ChangeEvent<HTMLInputElement>,
+    setCsv: Dispatch<SetStateAction<string>>,
+    setNomeArquivo: Dispatch<SetStateAction<string>>,
+    tipo: "gabarito" | "respostas"
+  ) {
+    setErro("");
+    setOk("");
+
+    try {
+      const arquivo = event.target.files?.[0];
+      if (!arquivo) {
+        return;
+      }
+
+      const conteudo = await arquivo.text();
+      setCsv(conteudo);
+      setNomeArquivo(arquivo.name);
+      setValidacaoCsv(null);
+      setOk(`Arquivo de ${tipo} importado com sucesso.`);
+    } catch (error) {
+      setErro(`Falha ao ler arquivo de ${tipo}: ${(error as Error).message}`);
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  function montarModeloCsvRespostas() {
+    setErro("");
+    setOk("");
+
+    if (!gabaritoCsv.trim()) {
+      setErro("Carregue ou importe o CSV de gabarito antes de montar o modelo de respostas.");
+      return;
+    }
+
+    const [cabecalhoGabarito] = gabaritoCsv
+      .split(/\r?\n/)
+      .map((linha) => linha.trim())
+      .filter((linha) => linha.length > 0);
+
+    if (!cabecalhoGabarito) {
+      setErro("Nao foi possivel identificar o cabecalho do gabarito.");
+      return;
+    }
+
+    const colunasQuestoes = cabecalhoGabarito
+      .split(",")
+      .map((coluna) => coluna.trim())
+      .filter((coluna) => /^q\d+$/i.test(coluna));
+
+    if (colunasQuestoes.length === 0) {
+      setErro("O gabarito deve conter colunas q1, q2, ... para montar o modelo de respostas.");
+      return;
+    }
+
+    const cabecalhoModelo = ["identificadorAluno", "numeroProva", ...colunasQuestoes].join(",");
+    const exemplo = ["aluno1", "1", ...colunasQuestoes.map(() => "")].join(",");
+    const modelo = `${cabecalhoModelo}\n${exemplo}`;
+
+    setRespostasCsv(modelo);
+    setNomeArquivoRespostas("modelo-respostas.csv");
+    setOk("Modelo de respostas montado a partir do gabarito.");
+  }
+
+  function baixarRelatorioCsvConteudo() {
+    setErro("");
+    setOk("");
+
+    if (!relatorioCsvConteudo.trim()) {
+      setErro("Carregue o relatorio CSV antes de baixar o arquivo.");
+      return;
+    }
+
+    const nome = ultimaCorrecao ? `relatorio-${ultimaCorrecao.id}.csv` : "relatorio-correcao.csv";
+    baixarTexto(nome, relatorioCsvConteudo);
+    setOk("Relatorio CSV baixado com sucesso.");
   }
 
   const estiloAba = (aba: AbaTela) => ({
@@ -992,6 +1138,13 @@ export function App() {
             <label>
               CSV de gabarito
               <br />
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => void importarCsvDoArquivo(event, setGabaritoCsv, setNomeArquivoGabarito, "gabarito")}
+                style={{ marginBottom: "0.5rem" }}
+              />
+              {nomeArquivoGabarito ? <div style={{ fontSize: "0.9rem", color: "#365a77" }}>Arquivo: {nomeArquivoGabarito}</div> : null}
               <textarea
                 value={gabaritoCsv}
                 onChange={(e) => setGabaritoCsv(e.target.value)}
@@ -1005,6 +1158,13 @@ export function App() {
             <label>
               CSV de respostas
               <br />
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => void importarCsvDoArquivo(event, setRespostasCsv, setNomeArquivoRespostas, "respostas")}
+                style={{ marginBottom: "0.5rem" }}
+              />
+              {nomeArquivoRespostas ? <div style={{ fontSize: "0.9rem", color: "#365a77" }}>Arquivo: {nomeArquivoRespostas}</div> : null}
               <textarea
                 value={respostasCsv}
                 onChange={(e) => setRespostasCsv(e.target.value)}
@@ -1017,6 +1177,21 @@ export function App() {
             <br />
             <button type="button" onClick={validarCsvsCorrecao} style={{ ...buttonSecondaryStyle, marginRight: "0.5rem" }}>
               Validar CSVs
+            </button>
+            <button
+              type="button"
+              onClick={montarModeloCsvRespostas}
+              style={{ ...buttonSecondaryStyle, marginRight: "0.5rem" }}
+            >
+              Montar modelo de respostas
+            </button>
+            <button
+              type="button"
+              onClick={executarCorrecaoCompleta}
+              disabled={processandoCorrecaoCompleta}
+              style={{ ...buttonPrimaryStyle, marginRight: "0.5rem", opacity: processandoCorrecaoCompleta ? 0.8 : 1 }}
+            >
+              {processandoCorrecaoCompleta ? "Processando..." : "Corrigir e carregar relatorio"}
             </button>
             <button type="submit" style={buttonPrimaryStyle}>Executar correcao</button>
           </form>
@@ -1040,12 +1215,18 @@ export function App() {
           <button type="button" onClick={carregarRelatorioCsv} style={{ ...buttonSecondaryStyle, marginTop: "0.8rem", marginLeft: "0.5rem" }}>
             Carregar relatorio CSV
           </button>
+          <button type="button" onClick={baixarRelatorioCsvConteudo} style={{ ...buttonSecondaryStyle, marginTop: "0.8rem", marginLeft: "0.5rem" }}>
+            Baixar relatorio CSV
+          </button>
 
           {relatorio ? (
             <ul style={{ marginTop: "0.8rem" }}>
               {relatorio.resultados.map((resultado) => (
                 <li key={`${resultado.identificadorAluno}-${resultado.numeroProva}`}>
                   {resultado.identificadorAluno} - prova {resultado.numeroProva} - nota {resultado.notaTotal}
+                  {resultado.questoes?.length
+                    ? ` - certas ${resultado.questoes.filter((questao) => questao.nota >= 1).length}/${resultado.questoes.length}`
+                    : ""}
                 </li>
               ))}
             </ul>
