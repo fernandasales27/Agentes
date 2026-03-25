@@ -544,21 +544,116 @@ export function App() {
   }
 
   const estiloAba = (aba: AbaTela) => ({
-    border: abaAtiva === aba ? "2px solid #111" : "1px solid #bbb",
-    background: abaAtiva === aba ? "#f7f7f7" : "#fff",
-    padding: "0.5rem 0.9rem",
+    border: abaAtiva === aba ? "1px solid #0f5fa8" : "1px solid #d7dce3",
+    background: abaAtiva === aba ? "#e8f2ff" : "#ffffff",
+    color: abaAtiva === aba ? "#0f5fa8" : "#24415d",
+    padding: "0.65rem 1rem",
     marginRight: "0.5rem",
+    marginBottom: "0.5rem",
+    borderRadius: "999px",
+    fontWeight: 600,
     cursor: "pointer",
   });
 
-  const secaoStyle = { marginTop: "1.2rem", borderTop: "1px solid #ddd", paddingTop: "1rem" };
+  const secaoStyle = {
+    marginTop: "1.2rem",
+    padding: "1.1rem",
+    border: "1px solid #dde5ef",
+    borderRadius: "14px",
+    background: "#ffffff",
+    boxShadow: "0 6px 20px rgba(15, 58, 98, 0.06)",
+  };
+
+  const inputBaseStyle = {
+    width: "100%",
+    padding: "0.6rem 0.7rem",
+    borderRadius: "8px",
+    border: "1px solid #c7d4e2",
+    background: "#fbfdff",
+    boxSizing: "border-box" as const,
+  };
+
+  const buttonPrimaryStyle = {
+    backgroundColor: "#0f5fa8",
+    color: "#fff",
+    padding: "0.55rem 0.95rem",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
+  };
+
+  const buttonDangerStyle = {
+    backgroundColor: "#c53030",
+    color: "#fff",
+    padding: "0.45rem 0.85rem",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
+  };
+
+  const buttonSecondaryStyle = {
+    backgroundColor: "#5f6b7a",
+    color: "#fff",
+    padding: "0.55rem 0.95rem",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
+  };
+
+  const infoCardStyle = {
+    border: "1px solid #d9e4f1",
+    background: "linear-gradient(135deg, #f8fbff 0%, #edf5ff 100%)",
+    borderRadius: "12px",
+    padding: "0.8rem",
+    minWidth: "130px",
+  };
+
+  const totalQuestoes = questoes.length;
+  const totalProvas = provas.length;
 
   return (
-    <main style={{ fontFamily: "Segoe UI, sans-serif", padding: "2rem", maxWidth: "960px", margin: "0 auto" }}>
-      <h1>Sistema de Provas</h1>
-      <p>Fluxo organizado por etapas para cadastro, geracao e correcao.</p>
+    <main
+      style={{
+        fontFamily: "Manrope, Segoe UI, sans-serif",
+        padding: "1.2rem",
+        maxWidth: "1100px",
+        margin: "0 auto",
+        color: "#1e2b37",
+      }}
+    >
+      <section
+        style={{
+          border: "1px solid #d9e4f1",
+          borderRadius: "16px",
+          padding: "1.1rem",
+          background: "linear-gradient(125deg, #ffffff 0%, #eef6ff 100%)",
+          boxShadow: "0 8px 24px rgba(15, 58, 98, 0.08)",
+        }}
+      >
+        <h1 style={{ marginTop: 0, marginBottom: "0.45rem" }}>Sistema de Provas</h1>
+        <p style={{ marginTop: 0, color: "#35526c" }}>
+          Cadastre questoes, monte provas, gere lotes e corrija respostas em um fluxo unico.
+        </p>
+        <div style={{ display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
+          <div style={infoCardStyle}>
+            <strong>{totalQuestoes}</strong>
+            <div style={{ color: "#3f5e78" }}>Questoes cadastradas</div>
+          </div>
+          <div style={infoCardStyle}>
+            <strong>{totalProvas}</strong>
+            <div style={{ color: "#3f5e78" }}>Provas cadastradas</div>
+          </div>
+          <div style={infoCardStyle}>
+            <strong>{abaAtiva}</strong>
+            <div style={{ color: "#3f5e78" }}>Etapa atual</div>
+          </div>
+        </div>
+      </section>
 
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: "1rem", display: "flex", flexWrap: "wrap" }}>
         <button type="button" style={estiloAba("QUESTOES")} onClick={() => setAbaAtiva("QUESTOES")}>
           Questoes
         </button>
@@ -573,8 +668,16 @@ export function App() {
         </button>
       </div>
 
-      {erro ? <p style={{ color: "#b00020", marginTop: "1rem" }}>{erro}</p> : null}
-      {ok ? <p style={{ color: "#0a7a2f", marginTop: "1rem" }}>{ok}</p> : null}
+      {erro ? (
+        <p style={{ color: "#8f152e", marginTop: "1rem", background: "#ffecef", border: "1px solid #ffc6d0", padding: "0.65rem", borderRadius: "10px" }}>
+          {erro}
+        </p>
+      ) : null}
+      {ok ? (
+        <p style={{ color: "#0d6330", marginTop: "1rem", background: "#eaf9ef", border: "1px solid #b9ebc7", padding: "0.65rem", borderRadius: "10px" }}>
+          {ok}
+        </p>
+      ) : null}
 
       {abaAtiva === "QUESTOES" ? (
         <>
@@ -587,14 +690,14 @@ export function App() {
               <label>
                 Enunciado
                 <br />
-                <input value={enunciado} onChange={(e) => setEnunciado(e.target.value)} style={{ width: "100%" }} />
+                <input value={enunciado} onChange={(e) => setEnunciado(e.target.value)} style={inputBaseStyle} />
               </label>
               <br />
               <br />
               <label>
                 Alternativa 1
                 <br />
-                <input value={alt1} onChange={(e) => setAlt1(e.target.value)} style={{ width: "100%" }} />
+                <input value={alt1} onChange={(e) => setAlt1(e.target.value)} style={inputBaseStyle} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
                 <input type="checkbox" checked={alt1Correta} onChange={() => marcarCorretaAlt(1)} /> Correta
@@ -604,7 +707,7 @@ export function App() {
               <label>
                 Alternativa 2
                 <br />
-                <input value={alt2} onChange={(e) => setAlt2(e.target.value)} style={{ width: "100%" }} />
+                <input value={alt2} onChange={(e) => setAlt2(e.target.value)} style={inputBaseStyle} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
                 <input type="checkbox" checked={alt2Correta} onChange={() => marcarCorretaAlt(2)} /> Correta
@@ -614,7 +717,7 @@ export function App() {
               <label>
                 Alternativa 3
                 <br />
-                <input value={alt3} onChange={(e) => setAlt3(e.target.value)} style={{ width: "100%" }} />
+                <input value={alt3} onChange={(e) => setAlt3(e.target.value)} style={inputBaseStyle} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
                 <input type="checkbox" checked={alt3Correta} onChange={() => marcarCorretaAlt(3)} /> Correta
@@ -624,19 +727,19 @@ export function App() {
               <label>
                 Alternativa 4
                 <br />
-                <input value={alt4} onChange={(e) => setAlt4(e.target.value)} style={{ width: "100%" }} />
+                <input value={alt4} onChange={(e) => setAlt4(e.target.value)} style={inputBaseStyle} />
               </label>
               <label style={{ marginLeft: "0.5rem" }}>
                 <input type="checkbox" checked={alt4Correta} onChange={() => marcarCorretaAlt(4)} /> Correta
               </label>
               <br />
               <br />
-              <button type="submit">{questaoIdEmEdicao ? "Atualizar questao" : "Salvar questao"}</button>
+              <button type="submit" style={buttonPrimaryStyle}>{questaoIdEmEdicao ? "Atualizar questao" : "Salvar questao"}</button>
               {questaoIdEmEdicao ? (
                 <button
                   type="button"
                   onClick={cancelarEdicaoQuestao}
-                  style={{ marginLeft: "0.5rem", backgroundColor: "#757575", color: "#fff", padding: "0.5rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  style={{ ...buttonSecondaryStyle, marginLeft: "0.5rem" }}
                 >
                   Cancelar
                 </button>
@@ -649,7 +752,7 @@ export function App() {
             {questoes.length === 0 ? <p>Nenhuma questao cadastrada.</p> : null}
             <ul>
               {questoes.map((questao) => (
-                <li key={questao.id} style={{ marginBottom: "0.8rem" }}>
+                <li key={questao.id} style={{ marginBottom: "0.8rem", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.7rem", background: "#fcfdff" }}>
                   <strong>{questao.enunciado}</strong>
                   <ul>
                     {questao.alternativas.map((alternativa) => (
@@ -661,14 +764,14 @@ export function App() {
                   <button
                     type="button"
                     onClick={() => carregarQuestaoParaEdicao(questao)}
-                    style={{ marginTop: "0.4rem", marginRight: "0.4rem", backgroundColor: "#1976d2", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                    style={{ ...buttonPrimaryStyle, marginTop: "0.4rem", marginRight: "0.4rem", padding: "0.42rem 0.78rem" }}
                   >
                     Editar
                   </button>
                   <button
                     type="button"
                     onClick={() => removerQuestao(questao.id)}
-                    style={{ marginTop: "0.4rem", backgroundColor: "#d32f2f", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                    style={{ ...buttonDangerStyle, marginTop: "0.4rem" }}
                   >
                     Remover
                   </button>
@@ -687,28 +790,28 @@ export function App() {
               <label>
                 Titulo
                 <br />
-                <input value={titulo} onChange={(e) => setTitulo(e.target.value)} style={{ width: "100%" }} />
+                <input value={titulo} onChange={(e) => setTitulo(e.target.value)} style={inputBaseStyle} />
               </label>
               <br />
               <br />
               <label>
                 Disciplina
                 <br />
-                <input value={disciplina} onChange={(e) => setDisciplina(e.target.value)} style={{ width: "100%" }} />
+                <input value={disciplina} onChange={(e) => setDisciplina(e.target.value)} style={inputBaseStyle} />
               </label>
               <br />
               <br />
               <label>
                 Professor
                 <br />
-                <input value={professor} onChange={(e) => setProfessor(e.target.value)} style={{ width: "100%" }} />
+                <input value={professor} onChange={(e) => setProfessor(e.target.value)} style={inputBaseStyle} />
               </label>
               <br />
               <br />
               <label>
                 Formato de resposta
                 <br />
-                <select value={formatoResposta} onChange={(e) => setFormatoResposta(e.target.value as FormatoResposta)}>
+                <select style={inputBaseStyle} value={formatoResposta} onChange={(e) => setFormatoResposta(e.target.value as FormatoResposta)}>
                   <option value="LETRAS">Letras</option>
                   <option value="POTENCIAS_2">Potencias de 2 (1, 2, 4, 8)</option>
                 </select>
@@ -733,12 +836,12 @@ export function App() {
                 ))}
               </div>
               <br />
-              <button type="submit">{provaIdEmEdicao ? "Atualizar prova" : "Salvar prova"}</button>
+              <button type="submit" style={buttonPrimaryStyle}>{provaIdEmEdicao ? "Atualizar prova" : "Salvar prova"}</button>
               {provaIdEmEdicao ? (
                 <button
                   type="button"
                   onClick={cancelarEdicaoProva}
-                  style={{ marginLeft: "0.5rem", backgroundColor: "#757575", color: "#fff", padding: "0.5rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  style={{ ...buttonSecondaryStyle, marginLeft: "0.5rem" }}
                 >
                   Cancelar
                 </button>
@@ -751,21 +854,21 @@ export function App() {
             {provas.length === 0 ? <p>Nenhuma prova cadastrada.</p> : null}
             <ul>
               {provas.map((prova) => (
-                <li key={prova.id} style={{ marginBottom: "0.8rem" }}>
+                <li key={prova.id} style={{ marginBottom: "0.8rem", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "0.7rem", background: "#fcfdff" }}>
                   <div>
                     {prova.titulo} - {prova.disciplina} - {prova.professor} - {prova.formatoResposta} ({prova.questaoIds.length} questoes)
                   </div>
                   <button
                     type="button"
                     onClick={() => carregarProvaParaEdicao(prova)}
-                    style={{ marginTop: "0.4rem", marginRight: "0.4rem", backgroundColor: "#1976d2", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                    style={{ ...buttonPrimaryStyle, marginTop: "0.4rem", marginRight: "0.4rem", padding: "0.42rem 0.78rem" }}
                   >
                     Editar
                   </button>
                   <button
                     type="button"
                     onClick={() => removerProva(prova.id)}
-                    style={{ marginTop: "0.4rem", backgroundColor: "#d32f2f", color: "#fff", padding: "0.4rem 0.8rem", border: "none", borderRadius: "4px", cursor: "pointer" }}
+                    style={{ ...buttonDangerStyle, marginTop: "0.4rem" }}
                   >
                     Remover
                   </button>
@@ -783,7 +886,7 @@ export function App() {
             <label>
               Prova
               <br />
-              <select value={provaIdParaGeracao} onChange={(e) => setProvaIdParaGeracao(e.target.value)}>
+              <select style={inputBaseStyle} value={provaIdParaGeracao} onChange={(e) => setProvaIdParaGeracao(e.target.value)}>
                 <option value="">Selecione...</option>
                 {provas.map((prova) => (
                   <option key={prova.id} value={prova.id}>
@@ -803,11 +906,12 @@ export function App() {
                 max={500}
                 value={quantidadeGeracao}
                 onChange={(e) => setQuantidadeGeracao(Number(e.target.value))}
+                style={inputBaseStyle}
               />
             </label>
             <br />
             <br />
-            <button type="submit">Gerar lote</button>
+            <button type="submit" style={buttonPrimaryStyle}>Gerar lote</button>
           </form>
 
           {ultimoLote ? (
@@ -816,13 +920,13 @@ export function App() {
             </p>
           ) : null}
 
-          <button type="button" onClick={carregarGabaritoCsv} style={{ marginTop: "0.8rem" }}>
+          <button type="button" onClick={carregarGabaritoCsv} style={{ ...buttonPrimaryStyle, marginTop: "0.8rem" }}>
             Carregar gabarito CSV do ultimo lote
           </button>
-          <button type="button" onClick={carregarMetadataPdf} style={{ marginTop: "0.8rem", marginLeft: "0.5rem" }}>
+          <button type="button" onClick={carregarMetadataPdf} style={{ ...buttonSecondaryStyle, marginTop: "0.8rem", marginLeft: "0.5rem" }}>
             Ver metadados do PDF
           </button>
-          <button type="button" onClick={baixarPdfDoLote} style={{ marginTop: "0.8rem", marginLeft: "0.5rem" }}>
+          <button type="button" onClick={baixarPdfDoLote} style={{ ...buttonSecondaryStyle, marginTop: "0.8rem", marginLeft: "0.5rem" }}>
             Baixar PDF do lote
           </button>
 
@@ -842,8 +946,10 @@ export function App() {
             <pre
               style={{
                 marginTop: "0.8rem",
-                background: "#f5f5f5",
+                background: "#f3f8ff",
                 padding: "0.8rem",
+                borderRadius: "10px",
+                border: "1px solid #d7e6f7",
                 overflowX: "auto",
               }}
             >
@@ -860,7 +966,7 @@ export function App() {
             <label>
               Modo de correcao
               <br />
-              <select value={modoCorrecao} onChange={(e) => setModoCorrecao(e.target.value as ModoCorrecao)}>
+              <select style={inputBaseStyle} value={modoCorrecao} onChange={(e) => setModoCorrecao(e.target.value as ModoCorrecao)}>
                 <option value="RIGOROSO">RIGOROSO</option>
                 <option value="PROPORCIONAL">PROPORCIONAL</option>
               </select>
@@ -874,7 +980,7 @@ export function App() {
                 value={gabaritoCsv}
                 onChange={(e) => setGabaritoCsv(e.target.value)}
                 rows={6}
-                style={{ width: "100%" }}
+                style={{ ...inputBaseStyle, minHeight: "130px", fontFamily: "Consolas, monospace" }}
               />
             </label>
             <br />
@@ -886,15 +992,15 @@ export function App() {
                 value={respostasCsv}
                 onChange={(e) => setRespostasCsv(e.target.value)}
                 rows={6}
-                style={{ width: "100%" }}
+                style={{ ...inputBaseStyle, minHeight: "130px", fontFamily: "Consolas, monospace" }}
               />
             </label>
             <br />
             <br />
-            <button type="button" onClick={validarCsvsCorrecao} style={{ marginRight: "0.5rem" }}>
+            <button type="button" onClick={validarCsvsCorrecao} style={{ ...buttonSecondaryStyle, marginRight: "0.5rem" }}>
               Validar CSVs
             </button>
-            <button type="submit">Executar correcao</button>
+            <button type="submit" style={buttonPrimaryStyle}>Executar correcao</button>
           </form>
 
           {validacaoCsv ? (
@@ -910,10 +1016,10 @@ export function App() {
             </p>
           ) : null}
 
-          <button type="button" onClick={carregarRelatorio} style={{ marginTop: "0.8rem" }}>
+          <button type="button" onClick={carregarRelatorio} style={{ ...buttonPrimaryStyle, marginTop: "0.8rem" }}>
             Carregar relatorio
           </button>
-          <button type="button" onClick={carregarRelatorioCsv} style={{ marginTop: "0.8rem", marginLeft: "0.5rem" }}>
+          <button type="button" onClick={carregarRelatorioCsv} style={{ ...buttonSecondaryStyle, marginTop: "0.8rem", marginLeft: "0.5rem" }}>
             Carregar relatorio CSV
           </button>
 
@@ -931,8 +1037,10 @@ export function App() {
             <pre
               style={{
                 marginTop: "0.8rem",
-                background: "#f5f5f5",
+                background: "#f3f8ff",
                 padding: "0.8rem",
+                borderRadius: "10px",
+                border: "1px solid #d7e6f7",
                 overflowX: "auto",
               }}
             >

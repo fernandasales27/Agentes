@@ -111,11 +111,12 @@ questoesRouter.delete("/:id", (req, res) => {
     return;
   }
 
-  const provaComQuestao = store.provas.find((prova) => prova.questaoIds.includes(id));
-  if (provaComQuestao) {
-    res.status(400).json({ error: "Questao vinculada a uma prova existente." });
-    return;
-  }
+  // Remove o vinculo da questao em todas as provas antes de excluir.
+  store.provas.forEach((prova) => {
+    if (prova.questaoIds.includes(id)) {
+      prova.questaoIds = prova.questaoIds.filter((questaoId) => questaoId !== id);
+    }
+  });
 
   store.questoes.splice(index, 1);
   res.status(204).send();

@@ -110,6 +110,7 @@ provasRouter.delete("/:id", (req, res) => {
   }
 
   store.provas.splice(index, 1);
+  store.geracoes = store.geracoes.filter((geracao) => geracao.provaId !== id);
   res.status(204).send();
 });
 
