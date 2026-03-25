@@ -17,6 +17,23 @@ Este repositorio contem a implementacao do experimento pratico de desenvolviment
 - RevisaoDoSistemaDoMeuColega.md: template de revisao da entrega do colega
 
 ## Setup rapido
+
+Stack	Versão
+
+React	18.3.1
+
+TypeScript	5.6.2 (uniforme em todos os packages)
+
+Vite	5.4.8
+
+Express	4.21.0
+
+PDFKit	0.15.0
+
+Cucumber	11.0.1
+
+tsx (dev runner)	4.19.1
+
 Pre-requisito: Node.js LTS com npm.
 
 1. Entrar na pasta do sistema:
