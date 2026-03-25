@@ -127,7 +127,7 @@ export function App() {
   const [gabaritoCsv, setGabaritoCsv] = useState("");
   const [pdfMetadata, setPdfMetadata] = useState<PdfMetadata | null>(null);
   const [modoCorrecao, setModoCorrecao] = useState<ModoCorrecao>("RIGOROSO");
-  const [respostasCsv, setRespostasCsv] = useState("identificadorAluno,numeroProva,q1,q2\naluno1,1,A,B");
+  const [respostasCsv, setRespostasCsv] = useState("");
   const [ultimaCorrecao, setUltimaCorrecao] = useState<CorrecaoResumo | null>(null);
   const [relatorio, setRelatorio] = useState<CorrecaoDetalhada | null>(null);
   const [relatorioCsvConteudo, setRelatorioCsvConteudo] = useState("");
@@ -962,6 +962,22 @@ export function App() {
       {abaAtiva === "CORRECAO" ? (
         <section style={secaoStyle}>
           <h2>Correcao de Provas</h2>
+          <div
+            style={{
+              marginTop: "0.6rem",
+              marginBottom: "0.8rem",
+              background: "#f6faff",
+              border: "1px solid #cfe1f5",
+              borderRadius: "10px",
+              padding: "0.7rem",
+              color: "#2f4f6a",
+            }}
+          >
+            <div><strong>CSV de gabarito:</strong> deve conter <strong>numeroProva</strong> e colunas <strong>q1,q2,...</strong></div>
+            <div>Exemplo: <code>numeroProva,q1,q2,q3</code> / <code>1,A,B,D</code></div>
+            <div style={{ marginTop: "0.4rem" }}><strong>CSV de respostas:</strong> deve conter <strong>identificadorAluno,numeroProva</strong> e as mesmas colunas <strong>q1,q2,...</strong></div>
+            <div>Exemplo: <code>identificadorAluno,numeroProva,q1,q2,q3</code> / <code>aluno1,1,A,B,D</code></div>
+          </div>
           <form onSubmit={executarCorrecao}>
             <label>
               Modo de correcao
@@ -979,6 +995,7 @@ export function App() {
               <textarea
                 value={gabaritoCsv}
                 onChange={(e) => setGabaritoCsv(e.target.value)}
+                placeholder={"numeroProva,q1,q2,q3\n1,A,B,D\n2,B,C,A"}
                 rows={6}
                 style={{ ...inputBaseStyle, minHeight: "130px", fontFamily: "Consolas, monospace" }}
               />
@@ -991,6 +1008,7 @@ export function App() {
               <textarea
                 value={respostasCsv}
                 onChange={(e) => setRespostasCsv(e.target.value)}
+                placeholder={"identificadorAluno,numeroProva,q1,q2,q3\naluno1,1,A,B,D\naluno2,2,B,C,A"}
                 rows={6}
                 style={{ ...inputBaseStyle, minHeight: "130px", fontFamily: "Consolas, monospace" }}
               />
